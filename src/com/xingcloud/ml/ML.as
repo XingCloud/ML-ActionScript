@@ -1,6 +1,7 @@
 package com.xingcloud.ml
 {
 	import com.xingcloud.ml.suport.Json;
+	import com.xingcloud.ml.suport.MD5;
 	
 	import flash.events.ErrorEvent;
 	import flash.events.Event;
@@ -74,7 +75,7 @@ package com.xingcloud.ml
 			_serviceName = serviceName ;
 			_apiKey = apiKey ;
 			_callBack = callBack ;
-			addDebugInfo("version 1.0.0.120226 initing...") ;
+			addDebugInfo("version 1.0.0.120229 initing...") ;
 			
 			var request:URLRequest = new URLRequest(API_URL+"/file/info") ;
 			request.data = getURLVariables("file_path=xc_words.xml&lang="+lang) ; 
@@ -110,10 +111,11 @@ package com.xingcloud.ml
 		
 		static private function getURLVariables(source:String=null):URLVariables
 		{
+			var timestamp:Number = new Date().time ;
 			var variables:URLVariables = new URLVariables(source) ;
 			variables.service_name = _serviceName ;
-			variables.timestamp = new Date().time ;
-			variables.hash = "md5(timestamp+apikey)" ;
+			variables.timestamp = timestamp ;
+			variables.hash = MD5.hash(timestamp+_apiKey) ;
 			return variables ;
 		}
 		
