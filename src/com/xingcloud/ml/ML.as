@@ -15,7 +15,7 @@ package com.xingcloud.ml
 
 	/**
 	 * ML是 Multi Language 的缩写，ML类是行云ML核心接口，通过静态的 <code>trans</code> 方法来获取平台服务。</br>
-	 * <code>ML.trans("have a try");</code>
+	 * <code>ML.trans("translate me to the world");</code>
 	 * @see #trans()
 	 * @author XingCloudly
 	 */
@@ -26,6 +26,7 @@ package com.xingcloud.ml
 		static private var _serviceName:String;
 		static private var _callBack:Function;
 		static private var _db:Object = {};
+		static private var _autoAddTrans:Boolean = false ;
 		
 		/**
 		 * 不可实例化，尝试实例化会抛错。直接通过 <code>ML.trans(serviceName)</code> 来获取ML服务。
@@ -38,7 +39,7 @@ package com.xingcloud.ml
 		}
 
 		/**
-		 * 通过<code> ML.trans() </code>直接获取词句的翻译，如 <code>ML.trans("hello world")</code>
+		 * 通过<code> ML.trans() </code>直接获取词句的翻译，如 <code>ML.trans("hello world")</code> </br>
 		 * @param source - String soure 需要翻译的词句
 		 * @return String transed 翻译后的词句
 		 * @see http://doc.xingcloud.com/pages/viewpage.action?pageId=4195455 行云ML在线文档
@@ -51,61 +52,81 @@ package com.xingcloud.ml
 			for (var key:String in _db) 
 				if(key == source) return _db[key] ;
 			
-			var request:URLRequest = new URLRequest(API_URL + "/string/add") ;
-			request.data = getURLVariables("data="+source) ; 
-			request.method = URLRequestMethod.POST ;
-			load(request, function(event:Event):void{addDebugInfo('"' + source + '" added.')}) ;
-			
+			if(_autoAddTrans)
+			{
+				var request:URLRequest = new URLRequest(API_URL + "/string/add") ;
+				request.data = getURLVariables("data="+source) ; 
+				request.method = URLRequestMethod.POST ;
+				load(request, function(event:Event):void{addDebugInfo("add -> " + source)}) ;
+			}
 			return source ;
 		}
 		
 		/**
 		 * ML初始化。需要先登陆行云多语言管理系统创建翻译服务 http://i.xingcloud.com/service
 		 * @param serviceName - String 服务名称，如 "my_ml_test"
-		 * @param lang - String 目标语言，如 "en"
-		 * @param apiKey - String ML分配的API密钥，如 "21f9a506b10062ea986483b794736e35"
-		 * @param callBack - String 初始化完成的回调函数，如 <code>function onMLReady(){trace("ML ready")}</code>
+		 * @param apiKey - String 行云多语言管理系统分配的API密钥，如 "21f...e35"
+		 * @param sourceLang - String 原始语言，如 "cn"
+		 * @param targetLang - String 目标语言，如 "en"，如果与原始语言相同，则不翻译直接原文返回
+		 * @param autoAddTrans - Boolean 是否自动添加未翻译词句到多语言服务器，默认为false
+		 * @param callBack - Function 初始化完成的回调函数，如 <code>function onMLReady(){trace("ML ready")}</code>
 		 * @see http://i.xingcloud.com/service 行云多语言管理系统
 		 */
-		static public function init(serviceName:String, lang:String, apiKey:String, callBack:Function=null):void
+		static public function init(serviceName:String, apiKey:String, 
+									sourceLang:String, targetLang:String, 
+									autoAddTrans:Boolean=false, callBack:Function=null):void
 		{
 			if(_serviceName && _serviceName.length > 0)
-				return ;
+				return ; //多次初始化视而不见
 			
+			addDebugInfo("version 1.0.0.120303 initing...") ;
 			_serviceName = serviceName ;
 			_apiKey = apiKey ;
 			_callBack = callBack ;
-			addDebugInfo("version 1.0.0.120229 initing...") ;
+			_autoAddTrans = autoAddTrans ;
 			
-			var request:URLRequest = new URLRequest(API_URL+"/file/info") ;
-			request.data = getURLVariables("file_path=xc_words.xml&lang="+lang) ; 
-			request.method = URLRequestMethod.POST ;
-			load(request, onFileInfoLoaded) ;
+			if(sourceLang == targetLang)
+			{
+				addDebugInfo("init stopped.") ;
+				_autoAddTrans = false ;
+				_callBack && _callBack() ;
+			}
+			else
+			{
+				var request:URLRequest = new URLRequest(API_URL+"/file/info") ;
+				request.data = getURLVariables("file_path=xc_words.json&locale="+targetLang) ;
+				load(request, onFileInfoLoaded) ;
+			}
 		}
 
-		/*"status": "NO_WORD", "lang": "cn", "source_lang": "en",
-		"translated": 0, "corpus": 1, "file_path": "xc_words.xml"
-		"request_address": "http://119.254.88.196/ml_assdk_test/cn/default/xc_words.xml",*/
+		/*"status": "COMPLETE","source": "en","target": "cn","file_path": "xc_words.json",
+		"length": 2,"source_words_count": 0,"human_translated": 0,"machine_translated": 0,
+		"request_address": "http://119.254.88.196/ml_assdk_test/cn/default/xc_words.json",
+		"md5": "99914b932bd37a50b983c5e7c90ae93b"*/
 		static private function onFileInfoLoaded(event:Event):void
 		{
 			addDebugInfo("file info loaded: " + event.target.data) ;
 			var info:Object = Json.decode(event.target.data) ;
 			
-			if(info && info.data && info.data["status"] == "COMPLETE")
-				load(new URLRequest(info.data["request_address"]), onXMLLoaded) ;
+			if(info && info.data && int(info.data["source_words_count"]) != 0)
+				load(new URLRequest(info.data["request_address"]), onFileLoaded) ;
 			else
 				_callBack && _callBack() ;
 		}
 	
-		static private function onXMLLoaded(event:Event):void
+		static private function onFileLoaded(event:Event):void
 		{
-			var xml:XML = new XML(event.target.data) ;
-			var list:XMLList = xml.children() ;
-			addDebugInfo("file loaded, total words: " + list.length()) ;
-			
-			for each (var x:XML in list) 
-				_db[x.source] = x.target ;
-				
+			var json:String = event.target.data ;
+			if(json == null || json.length == 0)
+			{
+				addDebugInfo("file loaded. file is empty.") ;
+			}
+			else
+			{
+				addDebugInfo("file loaded. file length: " + json.length) ;
+				try { _db = Json.decode(json) ; } 
+				catch (error:Error) {}
+			}
 			_callBack && _callBack() ;
 		}
 		
@@ -134,9 +155,9 @@ package com.xingcloud.ml
 			addDebugInfo("load error: " + event) ;
 		}
 		
-		static private function addDebugInfo(info:String):void
+		static private function addDebugInfo(info:Object):void
 		{
-			trace("ML:", info) ;
+			trace("ML:", info.toString()) ;
 			// call JSProxy.addDebugInfo(info) ;
 		}
 	}
