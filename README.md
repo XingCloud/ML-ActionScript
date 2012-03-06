@@ -25,7 +25,7 @@ N/A
 
 	{code:language=JavaScript|linenumbers=true|title=ActionScript Code}
 	// 在应用的主类初始化函数中加入下面这行代码，如果与原始语言相同，则不翻译直接原文返回
-	GDP.init("ml_test", "cn", "en", "apiKey", onMLReady);
+	ML.init("ml_test", "cn", "en", "apiKey", onMLReady);
 	function onMLReady():void
 	{
 		trace("ML Ready") ;
