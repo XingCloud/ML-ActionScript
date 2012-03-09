@@ -21,12 +21,17 @@ package com.xingcloud.ml
 	 */
 	public class ML
 	{
-		static private const API_URL:String = "http://i.xingcloud.com/api/v1" ;
-		static private var _apiKey:String ;
-		static private var _serviceName:String;
-		static private var _callBack:Function;
-		static private var _db:Object = {};
-		static private var _autoAddTrans:Boolean = false ;
+		private static const API_URL:String = "http://i.xingcloud.com/api/v1" ;
+		private static const XC_WORDS:String = "xc_words.json";
+		private static var _apiKey:String ;
+		private static var _serviceName:String;
+		private static var _callBack:Function;
+		private static var _db:Object = {};
+		private static var _autoAddTrans:Boolean = false ;
+		private static var _sourceLang:String;
+		private static var _targetLang:String;
+		private static var _snapshot:Object = {} ;
+		private static var _prefix:String = "" ;
 		
 		/**
 		 * 不可实例化，尝试实例化会抛错。直接通过 <code>ML.trans(serviceName)</code> 来获取ML服务。
@@ -36,30 +41,6 @@ package com.xingcloud.ml
 		public function ML():void
 		{
 			throw new Error("ML: Please access by ML.trans()!");
-		}
-
-		/**
-		 * 通过<code> ML.trans() </code>直接获取词句的翻译，如 <code>ML.trans("hello world")</code> </br>
-		 * @param source - String soure 需要翻译的词句
-		 * @return String transed 翻译后的词句
-		 * @see http://doc.xingcloud.com/pages/viewpage.action?pageId=4195455 行云ML在线文档
-		 */
-		static public function trans(source:String):String 
-		{
-			if(source == null || source.length == 0)
-				return "" ;
-			
-			for (var key:String in _db) 
-				if(key == source) return _db[key] ;
-			
-			if(_autoAddTrans)
-			{
-				var request:URLRequest = new URLRequest(API_URL + "/string/add") ;
-				request.data = getURLVariables("data="+source) ; 
-				request.method = URLRequestMethod.POST ;
-				load(request, function(event:Event):void{addDebugInfo("add -> " + source)}) ;
-			}
-			return source ;
 		}
 		
 		/**
@@ -72,49 +53,89 @@ package com.xingcloud.ml
 		 * @param callBack - Function 初始化完成的回调函数，如 <code>function onMLReady(){trace("ML ready")}</code>
 		 * @see http://i.xingcloud.com/service 行云多语言管理系统
 		 */
-		static public function init(serviceName:String, apiKey:String, 
+		public static function init(serviceName:String, apiKey:String, 
 									sourceLang:String, targetLang:String, 
 									autoAddTrans:Boolean=false, callBack:Function=null):void
 		{
 			if(_serviceName && _serviceName.length > 0)
 				return ; //多次初始化视而不见
 			
-			addDebugInfo("version 1.0.0.120303 initing...") ;
+			addDebugInfo("version 1.0.0.120308 initing...") ;
 			_serviceName = serviceName ;
 			_apiKey = apiKey ;
+			_sourceLang = sourceLang ;
+			_targetLang = targetLang ;
 			_callBack = callBack ;
 			_autoAddTrans = autoAddTrans ;
 			
-			if(sourceLang == targetLang)
+			loadFileSnapshot();
+		}
+		
+		/**
+		 * 通过原始语言资源地址获取目标语言地址。 
+		 * @param sourceUrl - String 原始语言地址
+		 * @return String 目标语言地址
+		 */
+		public static function transUrl(sourceUrl:String):String 
+		{
+			sourceUrl = sourceUrl.replace("http://", "") ;
+			var tail:String = sourceUrl.substr(sourceUrl.search("/")) ;
+			var targetUrl:String = _prefix + tail ;
+			return targetUrl ;
+		}
+		
+		/**
+		 * 通过<code> ML.trans() </code>直接获取词句的翻译，如 <code>ML.trans("hello world")</code> </br>
+		 * @param source - String soure 需要翻译的词句
+		 * @return String 翻译后的词句
+		 * @see http://doc.xingcloud.com/pages/viewpage.action?pageId=4195455 行云ML在线文档
+		 */
+		public static function trans(source:String):String 
+		{
+			if(source == null || source.length == 0)
+				return "" ;
+			
+			for (var key:String in _db) 
+				if(key == source) return _db[key] ;
+			
+			if(_autoAddTrans)
 			{
-				addDebugInfo("init stopped.") ;
-				_autoAddTrans = false ;
-				_callBack && _callBack() ;
+				var request:URLRequest = new URLRequest(API_URL + "/string/add") ;
+				request.data = getURLVariables("data="+source) ; 
+				request.method = URLRequestMethod.POST ;
+				loadRequest(request, function(event:Event):void{addDebugInfo("add -> " + source)}) ;
 			}
-			else
-			{
-				var request:URLRequest = new URLRequest(API_URL+"/file/info") ;
-				request.data = getURLVariables("file_path=xc_words.json&locale="+targetLang) ;
-				load(request, onFileInfoLoaded) ;
-			}
+			return source ;
 		}
 
-		/*"status": "COMPLETE","source": "en","target": "cn","file_path": "xc_words.json",
-		"length": 2,"source_words_count": 0,"human_translated": 0,"machine_translated": 0,
-		"request_address": "http://119.254.88.196/ml_assdk_test/cn/default/xc_words.json",
-		"md5": "99914b932bd37a50b983c5e7c90ae93b"*/
-		static private function onFileInfoLoaded(event:Event):void
+		/**
+		 * 加载文件快照。 
+		 */
+		private static function loadFileSnapshot():void
 		{
-			addDebugInfo("file info loaded: " + event.target.data) ;
-			var info:Object = Json.decode(event.target.data) ;
+			var request:URLRequest = new URLRequest(API_URL + "/file/snapshot") ;
+			request.data = getURLVariables("locale=" + _targetLang) ;
+			loadRequest(request, onFileSnapshotLoaded) ;
+		}
+		
+		private static function onFileSnapshotLoaded(event:Event):void
+		{
+			addDebugInfo("file snapshot loaded: " + event.target.data) ;
+			var json:String = event.target.data ;
+			var response:Object = {} ;
+			if(json && json.length > 0)
+			{
+				try { response = Json.decode(json) ; } 
+				catch(error:Error) { addDebugInfo(error) ; }
+			}
+			_prefix = response["request_prefix"] ;
+			_snapshot = response["data"] ? response["data"] : {} ;
 			
-			if(info && info.data && int(info.data["source_words_count"]) != 0)
-				load(new URLRequest(info.data["request_address"]), onFileLoaded) ;
-			else
-				_callBack && _callBack() ;
+			var xcWordsUrl:String = _prefix + "/" + XC_WORDS + "?" + _snapshot[XC_WORDS] ;
+			loadRequest(new URLRequest(xcWordsUrl), onXCWordsLoaded) ;
 		}
 	
-		static private function onFileLoaded(event:Event):void
+		private static function onXCWordsLoaded(event:Event):void
 		{
 			var json:String = event.target.data ;
 			if(json == null || json.length == 0)
@@ -125,12 +146,12 @@ package com.xingcloud.ml
 			{
 				addDebugInfo("file loaded. file length: " + json.length) ;
 				try { _db = Json.decode(json) ; } 
-				catch (error:Error) {}
+				catch (error:Error) { addDebugInfo(error) ; }
 			}
 			_callBack && _callBack() ;
 		}
 		
-		static private function getURLVariables(source:String=null):URLVariables
+		private static function getURLVariables(source:String=null):URLVariables
 		{
 			var timestamp:Number = new Date().time ;
 			var variables:URLVariables = new URLVariables(source) ;
@@ -140,7 +161,7 @@ package com.xingcloud.ml
 			return variables ;
 		}
 		
-		static private function load(request:URLRequest, onComplete:Function):void
+		private static function loadRequest(request:URLRequest, onComplete:Function):void
 		{
 			System.useCodePage = false ;
 			var	loader:URLLoader = new URLLoader() ;
@@ -150,12 +171,12 @@ package com.xingcloud.ml
 			loader.load(request) ;
 		}
 		
-		static private function onLoadError(event:ErrorEvent):void
+		private static function onLoadError(event:ErrorEvent):void
 		{
 			addDebugInfo("load error: " + event) ;
 		}
 		
-		static private function addDebugInfo(info:Object):void
+		private static function addDebugInfo(info:Object):void
 		{
 			trace("ML:", info.toString()) ;
 			// call JSProxy.addDebugInfo(info) ;
