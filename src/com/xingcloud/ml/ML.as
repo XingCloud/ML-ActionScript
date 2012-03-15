@@ -60,7 +60,7 @@ package com.xingcloud.ml
 			if(_serviceName && _serviceName.length > 0)
 				return ; //多次初始化视而不见
 			
-			addDebugInfo("version 1.0.0.120308 initing...") ;
+			addDebugInfo("version 1.0.0.120314 initing...") ;
 			_serviceName = serviceName ;
 			_apiKey = apiKey ;
 			_sourceLang = sourceLang ;
@@ -72,12 +72,18 @@ package com.xingcloud.ml
 		}
 		
 		/**
-		 * 通过原始语言资源地址获取目标语言地址。 
+		 * 通过原始语言资源地址获取目标语言地址。 需要初始化完成后才能正确响应。
 		 * @param sourceUrl - String 原始语言地址
 		 * @return String 目标语言地址
 		 */
 		public static function transUrl(sourceUrl:String):String 
 		{
+			if(sourceUrl == null || sourceUrl.length == 0)
+				return "sourceUrl error" ;
+			
+			if(_prefix == null || _prefix.length < 13)
+				return sourceUrl ;
+			
 			sourceUrl = sourceUrl.replace("http://", "") ;
 			var tail:String = sourceUrl.substr(sourceUrl.search("/")) ;
 			var targetUrl:String = _prefix + tail ;
