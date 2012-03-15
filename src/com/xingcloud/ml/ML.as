@@ -73,8 +73,8 @@ package com.xingcloud.ml
 		
 		/**
 		 * 通过原始语言资源地址获取目标语言地址。 需要初始化完成后才能正确响应。
-		 * @param sourceUrl - String 原始语言地址
-		 * @return String 目标语言地址
+		 * @param sourceUrl - String 原始语言资源地址
+		 * @return String 目标语言资源地址
 		 */
 		public static function transUrl(sourceUrl:String):String 
 		{
