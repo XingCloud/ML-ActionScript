@@ -55,12 +55,12 @@ package com.xingcloud.ml
 		 */
 		public static function init(serviceName:String, apiKey:String, 
 									sourceLang:String, targetLang:String, 
-									autoAddTrans:Boolean=false, callBack:Function=null):void
+									autoAddTrans:Boolean, callBack:Function):void
 		{
 			if(_serviceName && _serviceName.length > 0)
 				return ; //多次初始化视而不见
 			
-			addDebugInfo("version 1.0.0.120314 initing...") ;
+			addDebugInfo("version 1.0.1.120316 initing...") ;
 			_serviceName = serviceName ;
 			_apiKey = apiKey ;
 			_sourceLang = sourceLang ;
@@ -72,9 +72,9 @@ package com.xingcloud.ml
 		}
 		
 		/**
-		 * 通过原始语言资源地址获取目标语言地址。 需要初始化完成后才能正确响应。
+		 * 通过原始语言资源地址获取目标语言地址（无缓存问题）。 需要初始化完成后才能正确响应。
 		 * @param sourceUrl - String 原始语言资源地址
-		 * @return String 目标语言资源地址
+		 * @return String 目标语言资源地址（附MD5防止缓存）
 		 */
 		public static function transUrl(sourceUrl:String):String 
 		{
@@ -85,8 +85,8 @@ package com.xingcloud.ml
 				return sourceUrl ;
 			
 			sourceUrl = sourceUrl.replace("http://", "") ;
-			var tail:String = sourceUrl.substr(sourceUrl.search("/")) ;
-			var targetUrl:String = _prefix + tail ;
+			var tail:String = sourceUrl.substr(sourceUrl.search("/") + 1) ;
+			var targetUrl:String = _prefix + "/" + tail + "?md5=" + _snapshot[tail] ;
 			return targetUrl ;
 		}
 		
