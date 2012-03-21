@@ -26,12 +26,12 @@ package com.xingcloud.ml
 		private static var _apiKey:String ;
 		private static var _serviceName:String;
 		private static var _callBack:Function;
-		private static var _db:Object = {};
-		private static var _autoAddTrans:Boolean = false ;
 		private static var _sourceLang:String;
 		private static var _targetLang:String;
+		private static var _autoAddTrans:Boolean = false ;
+		private static var _prefix:String = null ;
 		private static var _snapshot:Object = {} ;
-		private static var _prefix:String = "" ;
+		private static var _db:Object = {};
 		
 		/**
 		 * 不可实例化，尝试实例化会抛错。直接通过 <code>ML.trans(serviceName)</code> 来获取ML服务。
@@ -60,7 +60,7 @@ package com.xingcloud.ml
 			if(_serviceName && _serviceName.length > 0)
 				return ; //多次初始化视而不见
 			
-			addDebugInfo("version 1.0.1.120316 initing...") ;
+			addDebugInfo("version 1.0.1.120321 initing...") ;
 			_serviceName = serviceName ;
 			_apiKey = apiKey ;
 			_sourceLang = sourceLang ;
@@ -74,19 +74,20 @@ package com.xingcloud.ml
 		/**
 		 * 通过原始语言资源地址获取目标语言地址（无缓存问题）。 需要初始化完成后才能正确响应。
 		 * @param sourceUrl - String 原始语言资源地址
-		 * @return String 目标语言资源地址（附MD5防止缓存）
+		 * @return String 目标语言资源地址（有防止缓存机制），如果未初始化将原地址返回
+		 * @throws Error "ML.transUrl(sourceUrl) param sourceUrl is null"
 		 */
 		public static function transUrl(sourceUrl:String):String 
 		{
 			if(sourceUrl == null || sourceUrl.length == 0)
-				return "sourceUrl error" ;
+				throw new Error("ML.transUrl(sourceUrl) param sourceUrl is null") ;
 			
-			if(_prefix == null || _prefix.length < 13)
-				return sourceUrl ;
-			
-			sourceUrl = sourceUrl.replace("http://", "") ;
-			var tail:String = sourceUrl.substr(sourceUrl.search("/") + 1) ;
-			var targetUrl:String = _prefix + "/" + tail + "?md5=" + _snapshot[tail] ;
+			var targetUrl:String = sourceUrl ;
+			var noHttpUrl:String = sourceUrl.replace(/http:\/\//i, "") ;
+			var tail:String = noHttpUrl.substr(noHttpUrl.search("/") + 1) ;
+			if(_snapshot[tail] && _prefix)
+				targetUrl = _prefix + "/" + tail + "?md5=" + _snapshot[tail] ;
+
 			return targetUrl ;
 		}
 		
