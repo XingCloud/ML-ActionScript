@@ -44,14 +44,14 @@ package com.xingcloud.ml
 		}
 		
 		/**
-		 * ML初始化。需要先登陆行云多语言管理系统创建翻译服务 http://p.xingcloud.com
+		 * ML初始化。需要先登陆行云管理系统创建多语言服务 http://p.xingcloud.com
 		 * @param serviceName - String 服务名称，如 "my_ml_test"
 		 * @param apiKey - String 行云多语言管理系统分配的API密钥，如 "21f...e35"
 		 * @param sourceLang - String 原始语言，如 "cn"
-		 * @param targetLang - String 目标语言，如 "en"，如果与原始语言相同，则不翻译直接原文返回
+		 * @param targetLang - String 目标语言，如 "en"，直接从行云传递给应用的flashVars里取得
 		 * @param autoAddTrans - Boolean 是否自动添加未翻译词句到多语言服务器，默认为false
 		 * @param callBack - Function 初始化完成的回调函数，如 <code>function onMLReady(){trace("ML ready")}</code>
-		 * @see http://i.xingcloud.com/service 行云多语言管理系统
+		 * @see http://p.xingcloud.com 行云管理系统
 		 */
 		public static function init(serviceName:String, apiKey:String, 
 									sourceLang:String, targetLang:String, 
