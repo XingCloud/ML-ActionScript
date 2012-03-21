@@ -4,9 +4,9 @@ ML AS SDK
 初始化：init()
 --------------
 
-static public function init(serviceName:String, lang:String, apiKey:String, callBack:Function=null):void
+public static function init(serviceName:String, lang:String, apiKey:String, callBack:Function):void
 
-通过该方法初始化ML。初始化后即可通过ML.trans()翻译词句。
+通过该方法初始化ML。初始化后即可通过ML.trans()翻译词句、通过ML.transUrl()获取目标语言地址。需要先登陆行云多语言管理系统创建翻译服务 http://p.xingcloud.com
 
 #### 参数类型
 
@@ -17,19 +17,17 @@ static public function init(serviceName:String, lang:String, apiKey:String, call
 * autoAddTrans: Boolean - 是否自动添加未翻译词句到多语言服务器, 默认为false
 * callBack: Function - 初始化完成的回调函数, 可为空
 
-#### 返回值
-
-N/A
-
 #### 代码示例
 
-	// 在应用的主类初始化函数中加入下面这行代码，如果与原始语言相同，则不翻译直接原文返回
-	ML.init("ml_test", "cn", "en", "apiKey", onMLReady);
-	function onMLReady():void
-	{
-		trace("ML Ready") ;
-	}
-	
+// 在应用的主类初始化函数中加入下面这行代码，如果与原始语言相同，则不翻译直接原文返回
+ML.init("ml_test", "cn", "en", "apiKey", onMLReady);
+function onMLReady():void
+{
+	trace("ML Ready") ;
+	trace(ML.trans("多语言服务测试")) ; // Multi-language service test
+	trace(ML.transUrl("http://elex_p_img337-f.akamaihd.net/static/swf/ml-test/ml_swf_test.swf")) ;
+	// http://f.xingcloud.com/ml-test/en/elex_p_img337-f.akamaihd.net/static/swf/ml-test/ml_swf_test.swf?md5=dff1c5ad2ce79ab8f86c2c82346b9c8a
+}
 
 翻译词句：trans()
 -----------------
@@ -48,14 +46,13 @@ String - 翻译好的词句, 如 "game start"
 
 #### 代码示例
 
-	// 示例
-	ML.init("ml_test", "cn", "en", "apiKey", onMLReady);
-	
-	function onMLReady():void
-	{
-		startLabel.text = ML.trans("游戏开始") ;
-		//your other code...
-	}
+// 示例
+ML.init("ml_test", "cn", "en", "apiKey", onMLReady);
+function onMLReady():void
+{
+	startLabel.text = ML.trans("游戏开始") ; // game start
+	// your other code...
+}
 
 语言资源地址转换：transUrl()
 -----------------
@@ -74,12 +71,11 @@ String - 目标语言资源地址
 
 #### 代码示例
 
-	// 示例
-	ML.init("ml_test", "cn", "en", "apiKey", onMLReady);
-	
-	function onMLReady():void
-	{
-		var cnSourceUrl:String = "http://i am cn source url" ;
-		var enSourceUrl:String = ML.transUrl(cnSourceUrl) ;
-		//your other code...
-	}
+// 示例
+ML.init("ml_test", "cn", "en", "apiKey", onMLReady);
+function onMLReady():void
+{
+	var cnSourceUrl:String = "http://elex_p_img337-f.akamaihd.net/static/swf/ml-test/ml_swf_test.swf" ;
+	var enSourceUrl:String = ML.transUrl(cnSourceUrl) ;
+	// http://f.xingcloud.com/ml-test/en/elex_p_img337-f.akamaihd.net/static/swf/ml-test/ml_swf_test.swf?md5=dff1c5ad2ce79ab8f86c2c82346b9c8a
+}

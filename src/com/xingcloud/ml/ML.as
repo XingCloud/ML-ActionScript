@@ -44,7 +44,7 @@ package com.xingcloud.ml
 		}
 		
 		/**
-		 * ML初始化。需要先登陆行云多语言管理系统创建翻译服务 http://i.xingcloud.com/service
+		 * ML初始化。需要先登陆行云多语言管理系统创建翻译服务 http://p.xingcloud.com
 		 * @param serviceName - String 服务名称，如 "my_ml_test"
 		 * @param apiKey - String 行云多语言管理系统分配的API密钥，如 "21f...e35"
 		 * @param sourceLang - String 原始语言，如 "cn"
