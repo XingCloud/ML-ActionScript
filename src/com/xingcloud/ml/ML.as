@@ -60,7 +60,7 @@ package com.xingcloud.ml
 			if(_serviceName && _serviceName.length > 0)
 				return ; //多次初始化视而不见
 			
-			addDebugInfo("version 1.0.1.120321 initing...") ;
+			addDebugInfo("version 1.0.1.120322 initing...") ;
 			_serviceName = serviceName ;
 			_apiKey = apiKey ;
 			_sourceLang = sourceLang ;
@@ -81,12 +81,30 @@ package com.xingcloud.ml
 		{
 			if(sourceUrl == null || sourceUrl.length == 0)
 				throw new Error("ML.transUrl(sourceUrl) param sourceUrl is null") ;
+
+			var targetUrl:String = sourceUrl,
+				vars:String = sourceUrl.substr(sourceUrl.indexOf("?") + 1),
+				tail:String = sourceUrl.toLowerCase() ;
 			
-			var targetUrl:String = sourceUrl ;
-			var noHttpUrl:String = sourceUrl.replace(/http:\/\//i, "") ;
-			var tail:String = noHttpUrl.substr(noHttpUrl.search("/") + 1) ;
+			if(sourceUrl.search(/http:\/\/f\.xingcloud\.com/i) == -1)
+			{
+				tail = tail.replace(/http:\/\//i, "") ;
+				tail = tail.substr(tail.indexOf("/") + 1) ;
+			}
+			else
+			{
+				tail = tail.replace(_prefix+"/", "") ;
+			}
+			tail = tail.replace("?" + vars, "") ;
+			addDebugInfo("tail=" + tail + " vars=" + vars) ;
+			
 			if(_snapshot[tail] && _prefix)
-				targetUrl = _prefix + "/" + tail + "?md5=" + _snapshot[tail] ;
+			{
+				addDebugInfo("enter") ;
+				targetUrl = _prefix + "/" + tail + "?md5=" + _snapshot[tail]  ;
+				if (vars && vars.length < sourceUrl.length)
+					targetUrl += "&" + vars ;
+			}
 
 			return targetUrl ;
 		}
