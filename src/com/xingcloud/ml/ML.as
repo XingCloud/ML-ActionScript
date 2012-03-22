@@ -60,7 +60,7 @@ package com.xingcloud.ml
 			if(_serviceName && _serviceName.length > 0)
 				return ; //多次初始化视而不见
 			
-			addDebugInfo("version 1.0.1.120322 initing...") ;
+			addDebugInfo("version 1.0.1.1203221 initing...") ;
 			_serviceName = serviceName ;
 			_apiKey = apiKey ;
 			_sourceLang = sourceLang ;
@@ -84,11 +84,11 @@ package com.xingcloud.ml
 
 			var targetUrl:String = sourceUrl ;
 			var	vars:String = sourceUrl.substr(sourceUrl.indexOf("?") + 1) ;
-			var	tail:String = sourceUrl.toLowerCase() ;
+			var	tail:String = sourceUrl ;
 			
 			if(sourceUrl.search(/http:\/\/f\.xingcloud\.com/i) != -1)
 			{
-				tail = tail.replace(_prefix+"/", "") ;
+				tail = tail.substr(_prefix.length + 1) ;
 			}
 			else
 			{
@@ -97,7 +97,7 @@ package com.xingcloud.ml
 			}
 			
 			tail = tail.replace("?" + vars, "") ;
-			addDebugInfo("tail=" + tail + " vars=" + vars) ;
+			//addDebugInfo("tail=" + tail + " vars=" + vars) ;
 			
 			if(_snapshot[tail] && _prefix)
 			{
