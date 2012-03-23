@@ -59,7 +59,9 @@ String - 翻译好的词句, 如 "game start"
 
 public static function transUrl(sourceUrl:String):String
 
-通过原始语言资源地址获取目标语言地址。 
+通过原始语言地址获取目标语言地址。强烈建议使用该方法处理应用中的多语言资源请求，优势如下：
+<li>直接通过初始化配置的目标语言获取地址，代码逻辑与语言无关</li>
+<li>目标语言地址携带资源文件MD5，享受CDN加速而无需担心缓存</li>
 
 #### 参数类型
 
