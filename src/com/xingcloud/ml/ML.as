@@ -86,7 +86,7 @@ package com.xingcloud.ml
 				return sourceUrl ;
 
 			var targetUrl:String = sourceUrl ;
-			var	tail:String = sourceUrl ;
+			var tail:String = sourceUrl ;
 			if (sourceUrl.search(/http:\/\/f\.xingcloud\.com/i) != -1)
 			{
 				tail = tail.substr(_prefix.length + 1) ;
@@ -149,7 +149,7 @@ package com.xingcloud.ml
 		
 		private static function onFileSnapshotLoaded(event:Event):void
 		{
-			addDebugInfo("file snapshot loaded: " + event.target.data) ;
+			addDebugInfo("file snapshot loaded.") ;
 			var json:String = event.target.data ;
 			var response:Object = {} ;
 			if (json && json.length > 0)
