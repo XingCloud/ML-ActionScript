@@ -58,7 +58,7 @@ package com.xingcloud.ml
 			if (_serviceName && _serviceName.length > 0)
 				return ; //多次初始化视而不见
 			
-			addDebugInfo("version 1.0.1.120323 initing...") ;
+			addDebugInfo("version 1.0.2.120324 initing...") ;
 			_serviceName = serviceName ;
 			_apiKey = apiKey ;
 			_sourceLang = sourceLang ;
@@ -85,7 +85,6 @@ package com.xingcloud.ml
 			if (_prefix == null || _prefix.length < 13) // 13 is magic number:)
 				return sourceUrl ;
 
-			var targetUrl:String = sourceUrl ;
 			var tail:String = sourceUrl ;
 			if (sourceUrl.search(/http:\/\/f\.xingcloud\.com/i) != -1)
 			{
@@ -101,12 +100,15 @@ package com.xingcloud.ml
 			var	vars:String = tail.substr(tail.indexOf("?")) ;
 			if (vars.charAt(0) != "?") vars = null ;
 			else tail = tail.replace(vars, "") ; 
-				
+			
+			var targetUrl:String = _prefix + "/" + tail ;
+			if (vars && vars.length > 1) targetUrl += vars ;
+			
 			var md5:String = _snapshot[tail] ;
-			if (md5 && md5.length > 0)
+			if (md5 && md5.length > 0) 
 			{
-				targetUrl = _prefix + "/" + tail + "?md5=" + md5 ;
-				if (vars && vars.length > 1) targetUrl += "&" + vars.substr(1) ;
+				if (targetUrl.indexOf("?") != -1) targetUrl += "&md5=" + md5 ;
+				else targetUrl += "?md5=" + md5 ;
 			}
 			else addDebugInfo("transUrl tail=" + tail + " vars=" + vars) ;
 
@@ -203,6 +205,7 @@ package com.xingcloud.ml
 		private static function onLoadError(event:ErrorEvent):void
 		{
 			addDebugInfo("load error: " + event) ;
+			_callBack && _callBack() ;
 		}
 		
 		private static function addDebugInfo(info:Object):void
