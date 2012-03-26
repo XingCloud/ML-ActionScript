@@ -63,11 +63,13 @@ package com.xingcloud.ml
 				return _db[key] ;
 			}
 			
-			var request:URLRequest = new URLRequest(API_URL + "/string/add") ;
-			request.data = getURLVariables("data="+source) ; 
-			request.method = URLRequestMethod.POST ;
-			loadRequest(request, function(event:Event):void{addDebugInfo("add -> " + source)}) ;
-			
+			if (_useTrans)
+			{
+				var request:URLRequest = new URLRequest(API_URL + "/string/add") ;
+				request.data = getURLVariables("data="+source) ; 
+				request.method = URLRequestMethod.POST ;
+				loadRequest(request, function(event:Event):void{addDebugInfo("add -> " + source)}) ;
+			}
 			return source ;
 		}
 		
@@ -190,12 +192,14 @@ package com.xingcloud.ml
 		{
 			checkSnapshot(event.target.data) ;
 			
-			if (_useTrans)
-			{
-				var xcWordsUrl:String = _prefix + "/" + XC_WORDS + "?" + _snapshot[XC_WORDS] ;
-				loadRequest(new URLRequest(xcWordsUrl), onXCWordsLoaded) ;
-			}
+			if (_useTrans) loadXCWords() ;
 			else checkCallBack() ;
+		}
+		
+		private static function loadXCWords():void
+		{
+			var xcWordsUrl:String = _prefix + "/" + XC_WORDS + "?" + _snapshot[XC_WORDS] ;
+			loadRequest(new URLRequest(xcWordsUrl), onXCWordsLoaded) ;
 		}
 		
 		private static function checkSnapshot(json:String):void
@@ -217,8 +221,11 @@ package com.xingcloud.ml
 			{
 				addDebugInfo("snapshot load timeout. try to read cookie.") ;
 				ba = lso.data[_serviceName] ;
-				ba.uncompress() ;
-				json = ba.readObject() ;
+				if (ba) 
+				{
+					ba.uncompress() ;
+					json = ba.readObject() ;
+				}
 			}
 			
 			var response:Object = {} ;
