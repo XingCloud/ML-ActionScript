@@ -20,7 +20,7 @@ public static function init(serviceName:String, lang:String, apiKey:String, call
 #### 代码示例
 
 	// 在应用的主类初始化函数加入下面代码, 其中目标语言, 直接从行云传递给应用的flashVars里取得
-	ML.init("ml_test", "cn", "en", "apiKey", onMLReady);
+	ML.init("ml_test", "apiKey", "cn", "en", true, onMLReady);
 	function onMLReady():void
 	{
 		trace("ML Ready") ;
@@ -47,7 +47,7 @@ String - 翻译好的词句, 如 "game start"
 #### 代码示例
 
 	// 目标语言, 如"en", 直接从行云传递给应用的flashVars里取得
-	ML.init("ml_test", "cn", "en", "apiKey", onMLReady);
+	ML.init("ml_test", "apiKey", "cn", "en", true, onMLReady);
 	function onMLReady():void
 	{
 		startButton.text = ML.trans("游戏开始") ; // game start
@@ -74,7 +74,7 @@ String - 目标语言资源地址
 #### 代码示例
 
 	// 目标语言, 如"en", 直接从行云传递给应用的flashVars里取得
-	ML.init("ml_test", "cn", "en", "apiKey", onMLReady);
+	ML.init("ml_test", "apiKey", "cn", "en", true, onMLReady);
 	function onMLReady():void
 	{
 		var cnSourceUrl:String = "http://elex_p_img337-f.akamaihd.net/static/swf/ml-test/ml_swf_test.swf" ;
