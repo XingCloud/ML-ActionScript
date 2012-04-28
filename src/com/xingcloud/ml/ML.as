@@ -23,6 +23,7 @@ package com.xingcloud.ml
 	 */
 	public class ML
 	{
+		private static const VERSION:String = "version 1.2.2.120428" ;
 		private static var _serviceName:String;
 		private static var _apiKey:String;
 		private static var _sourceLang:String;
@@ -78,8 +79,8 @@ package com.xingcloud.ml
 		
 		/**
 		 * 通过原始资源地址获取目标资源地址。强烈建议使用该方法处理应用的资源请求，优点如下：
-		 * <li>直接通过初始化配置的目标语言获取地址，代码逻辑与语言无关</li>
-		 * <li>目标资源地址携带资源文件版本标识xcv，享受CDN加速而无需担心缓存</li>
+		 * <li>直接通过初始化配置的目标语言获取地址，代码逻辑与语言无关。</li>
+		 * <li>目标资源地址携带资源文件版本标识xcv，享受CDN加速而无需担心缓存。</li>
 		 * @param sourceUrl - String 原始语言资源地址
 		 * @return targetUrl - String 目标语言资源地址
 		 * @throws Error "ML.transUrl(sourceUrl) param sourceUrl is null"
@@ -102,11 +103,11 @@ package com.xingcloud.ml
 			else vars = null ;
 			
 			var xcv:String = _snapshot[tail] ;
-			var targetUrl:String = _prefix + "/" + tail + (vars?vars:"") ;
+			var targetUrl:String = _prefix + "/" + tail + (vars||"") ;
 			if (targetUrl.indexOf("xcv=") == -1 && xcv)
 			{
-				if (targetUrl.indexOf("?") != -1) targetUrl += "&xcv=" + xcv ;
-				else targetUrl += "?xcv=" + xcv ;
+				if (targetUrl.indexOf("?") == -1) targetUrl += "?xcv=" + xcv ;
+				else targetUrl += "&xcv=" + xcv ;
 			}
 			else addDebugInfo("transUrl " + _transUrlCount + " targetUrl " + targetUrl) ; 
 			
@@ -116,7 +117,7 @@ package com.xingcloud.ml
 		// tail will like this: "static/assets/ui.swf?vvv&ppp"
 		private static function getUrlTail(url:String):String
 		{
-			var tail:String = url ? url : "" ;
+			var tail:String = url || "" ;
 			if (tail.search(/\w*:\/\/(f|cdn)\.xingcloud\.com/i) != -1)
 			{
 				tail = tail.substr(_prefix.length + 1) ;
@@ -146,7 +147,7 @@ package com.xingcloud.ml
 		}
 		
 		/**
-		 * 在初始化前设置，是否启用ML.trans接口，默认为关闭，以加速初始化速度。
+		 * 在初始化前设置，是否启用 ML.trans(source)，默认为关闭，以加速初始化速度。
 		 */
 		public static function set useTrans(useTrans:Boolean):void
 		{
@@ -159,7 +160,7 @@ package com.xingcloud.ml
 		 * @param apiKey - String 行云多语言管理系统分配的API密钥，如 "a4a3c891f47636a279b722c59270c452"
 		 * @param sourceLang - String 原始语言，如 "cn"
 		 * @param targetLang - String 目标语言，如 "en"，直接从应用的flashVars里取得
-		 * @param callBack - Function 初始化完成的回调函数，如 <code>private function onMLReady(){trace("ML ready");}</code>
+		 * @param callBack - Function 初始化完成的回调方法，如 <code>private function onMLReady(){trace("ML ready");}</code>
 		 * @see http://p.xingcloud.com 行云管理系统
 		 */
 		public static function init(serviceName:String, apiKey:String, 
@@ -169,11 +170,11 @@ package com.xingcloud.ml
 			if (_serviceName && _serviceName.length > 0)
 				return ; //多次初始化视而不见
 			
-			addDebugInfo("version 1.2.1.120426 initing...") ;
+			addDebugInfo(VERSION + " initing...") ;
 			_serviceName = serviceName ;
 			_apiKey = apiKey ;
 			_sourceLang = sourceLang ;
-			_targetLang = targetLang ? targetLang : sourceLang ;
+			_targetLang = targetLang || sourceLang ;
 			_callBack = callBack ;
 			
 			loadSnapshot();
@@ -192,7 +193,7 @@ package com.xingcloud.ml
 		}
 		
 		/**
-		 * 如果失败一直重试，直至加载成功或者超时 
+		 * 如果失败一直重试，直至加载成功或者超时。 
 		 */
 		private static function onSnapshotError(event:ErrorEvent):void
 		{
@@ -202,7 +203,7 @@ package com.xingcloud.ml
 		}
 		
 		/**
-		 * 处理保存文件快照。如果正常加载成功，则尝试保存到cookie；如果超时，则尝试读取cookie。 
+		 * 处理保存文件快照。如果正常加载完成，则尝试保存到cookie；如果超时，则尝试读取cookie。 
 		 */
 		private static function onSnapshotLoaded(event:Event):void
 		{
@@ -218,7 +219,7 @@ package com.xingcloud.ml
 					writer.writeObject(json) ;
 					writer.compress() ;
 					lso.data[_serviceName] = writer ;
-					try { lso.flush(writer.length); addDebugInfo("writed! size=" + int(writer.length/1024) + " KB"); } 
+					try { lso.flush(writer.length); addDebugInfo("writed! size=" + (writer.length>>10) + " KB"); } 
 					catch (error:Error) { addDebugInfo("failed! " + error);} 
 				}
 			}
@@ -239,8 +240,7 @@ package com.xingcloud.ml
 				catch (error:Error) { addDebugInfo(error) ; }
 				
 				_prefix = response["request_prefix"] ;
-				_snapshot = response["data"] ;
-				_snapshot = _snapshot ? _snapshot : {} ;
+				_snapshot = response["data"] || {} ;
 			}
 			else addDebugInfo("snapshot is empty, update skip.") ;
 			
@@ -255,7 +255,7 @@ package com.xingcloud.ml
 		private static function loadXCWords():void
 		{
 			var xcWrods:String = "xc_words.json" ;
-			var xcWordsUrl:String = _prefix + "/" + xcWrods + "?" + _snapshot[xcWrods] ;
+			var xcWordsUrl:String = _prefix + "/" + xcWrods + "?" + (_snapshot[xcWrods]||Math.random()) ;
 			loadRequest(new URLRequest(xcWordsUrl), onXCWordsLoaded) ;
 		}
 	
@@ -286,7 +286,7 @@ package com.xingcloud.ml
 		private static function loadRequest(request:URLRequest, onComplete:Function, onError:Function=null):void
 		{
 			System.useCodePage = false ;
-			onError = onError == null ? onLoadError : onError ; 
+			onError ||= onLoadError ; 
 			var	loader:URLLoader = new URLLoader() ;
 			loader.addEventListener(IOErrorEvent.IO_ERROR, onError);
 			loader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, onError) ;
