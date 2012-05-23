@@ -1,32 +1,40 @@
-ML AS SDK
+XingCloud Multi-Language Service
 =============
 
-初始化：init()
+Overview
 --------------
+行云多语言服务（简称ML）集成三大功能：
+1.多语言翻译 
+2.全球静态资源CDN加速
+3.版本控制
+于一体进行管理，做到游戏资源的多语言处理流程简单透明，为应用全球一体化打下坚实基础。
 
-public static function init(serviceName:String, lang:String, apiKey:String, callBack:Function):void
 
-通过该方法初始化ML。初始化后即可通过ML.trans()翻译词句、通过ML.transUrl()获取目标语言地址。需要先登陆行云管理系统创建多语言服务 http://p.xingcloud.com
+初始化：ML.init()
+--------------
+public static function init(serviceName:String，lang:String，apiKey:String，callBack:Function):void
+
+通过该方法初始化ML。初始化后即可通过ML.trans()翻译词句、通过ML.transUrl()获取目标语言CDN地址。
+需要先登陆行云管理系统创建多语言服务 http://p.xingcloud.com
 
 #### 参数类型
 
-* serviceName: String - 服务名称, 如 "my_ml_test"
-* apiKey: String - 行云多语言管理系统分配的API密钥, 如 "21f...e35"
-* sourceLang: String - 原始语言, 如"cn"
-* targetLang: String - 目标语言, 如"en", 直接从行云传递给应用的flashVars里取得
-* autoAddTrans: Boolean - 是否自动添加未翻译词句到多语言服务器, 默认为false
+* serviceName: String - 服务名称，如 "bddemo"
+* apiKey: String - 行云多语言管理系统分配的API密钥，如 "7e77da37d4bdf68bdadc107c27b01672"
+* sourceLang: String - 原始语言，如"cn"
+* targetLang: String - 目标语言，如"en", 直接从行云传递给应用的flashVars里取得
 * callBack: Function - 初始化完成的回调函数
 
 #### 代码示例
 
-	// 在应用的主类初始化函数加入下面代码, 其中目标语言, 直接从行云传递给应用的flashVars里取得
-	ML.init("ml_test", "apiKey", "cn", "en", true, onMLReady);
-	function onMLReady():void
+	// 在应用的主类初始化函数加入下面一行代码，其中目标语言，应直接从行云传递给应用的flashVars里取得
+	ML.init("bddemo", "7e77da37d4bdf68bdadc107c27b01672", "cn", "en", onMLReady) ;
+	
+	// 申明一个方法onMLReady，ML初始化完成的回自动调用该方法，应用本身的初始化应从这个方法开始
+	private function onMLReady():void
 	{
-		trace("ML Ready") ;
-		trace(ML.trans("多语言服务测试")) ; // Multi-language service test
-		trace(ML.transUrl("http://elex_p_img337-f.akamaihd.net/static/swf/ml-test/ml_swf_test.swf")) ;
-		// http://f.xingcloud.com/ml-test/en/elex_p_img337-f.akamaihd.net/static/swf/ml-test/ml_swf_test.swf?md5=dff1c5ad2ce79ab8f86c2c82346b9c8a
+		trace(ML.transUrl("url")) ;
+		gameInit(); // 应用自己的初始化方法
 	}
 
 翻译词句：trans()
@@ -34,23 +42,22 @@ public static function init(serviceName:String, lang:String, apiKey:String, call
 
 public static function trans(source:String):String
 
-通过该方法直接翻译词句。
+使用本接口直接获取词句的翻译，需要初始化前配置 ML.useTrans = true; 示例如 ML.trans("世界你好");
 
 #### 参数类型
 
-* source: String - 需要翻译的词句, 如 "游戏开始"
+* source: String - 需要翻译的词句，如 "世界你好"
 
 #### 返回值
 
-String - 翻译好的词句, 如 "game start"
+* String - 翻译好的词句，如 "hello world"
 
 #### 代码示例
 
-	// 目标语言, 如"en", 直接从行云传递给应用的flashVars里取得
-	ML.init("ml_test", "apiKey", "cn", "en", true, onMLReady);
-	function onMLReady():void
+	ML.init("bddemo", "7e77da37d4bdf68bdadc107c27b01672", "cn", "en", onMLReady) ;
+	private function onMLReady():void
 	{
-		startButton.text = ML.trans("游戏开始") ; // game start
+		aButton.text = ML.trans("世界你好") ; // hello world
 		// your other code...
 	}
 
@@ -73,11 +80,9 @@ String - 目标语言资源地址
 
 #### 代码示例
 
-	// 目标语言, 如"en", 直接从行云传递给应用的flashVars里取得
-	ML.init("ml_test", "apiKey", "cn", "en", true, onMLReady);
-	function onMLReady():void
+	ML.init("bddemo", "7e77da37d4bdf68bdadc107c27b01672", "cn", "en", onMLReady) ;
+	private function onMLReady():void
 	{
 		var cnSourceUrl:String = "http://elex_p_img337-f.akamaihd.net/static/swf/ml-test/ml_swf_test.swf" ;
 		var enSourceUrl:String = ML.transUrl(cnSourceUrl) ;
-		// http://f.xingcloud.com/ml-test/en/elex_p_img337-f.akamaihd.net/static/swf/ml-test/ml_swf_test.swf?md5=dff1c5ad2ce79ab8f86c2c82346b9c8a
 	}
