@@ -1,88 +1,74 @@
-XingCloud Multi-Language Service
-=============
+[XingCloud](http://www.xingcloud.com) Multi-Language Service
+==============
 
-Overview
+[行云多语言服务  ML](http://doc.xingcloud.com) 
 --------------
-行云多语言服务（简称ML）集成三大功能：
-1.多语言翻译 
-2.全球静态资源CDN加速
-3.版本控制
-于一体进行管理，做到游戏资源的多语言处理流程简单透明，为应用全球一体化打下坚实基础。
+行云多语言服务（简称ML）集成一键多语言翻译、自动全球静态资源[CDN](http://zh.wikipedia.org/wiki/CDN)同步、智能文件版本控制三大功能于一体。    
+做到应用的多语言处理流程简单透明，只需一行代码，即可为您的应用启动全球一体化。
+* 一键多语言翻译（一键翻译SWF、XML、JSON为22种语言） 
+* 自动CDN加速（免去全球范围内的CDN洽谈、采购、同步上传等繁琐流程，一切自动完成）
+* 智能文件版本控制（根据文件内容进行版本控制，智能精准）
 
-
-初始化：ML.init()
+一行代码使用行云多语言服务：ML.transUrl(sourceUrl)
 --------------
-public static function init(serviceName:String，lang:String，apiKey:String，callBack:Function):void
+使用 ML.transUrl(sourceUrl) 处理需要翻译的语言资源（XML或SWF）地址，即可享受行云多语言服务的三大功能。    
+如加载一个中文的SWF，使用ML前为 loader.load(swfUrl) 使用ML后为 loader.load(ML.transUrl(swfUrl)) 简单完整示例如下：
 
-通过该方法初始化ML。初始化后即可通过ML.trans()翻译词句、通过ML.transUrl()获取目标语言CDN地址。
-需要先登陆行云管理系统创建多语言服务 http://p.xingcloud.com
-
-#### 参数类型
-
-* serviceName: String - 服务名称，如 "bddemo"
-* apiKey: String - 行云多语言管理系统分配的API密钥，如 "7e77da37d4bdf68bdadc107c27b01672"
-* sourceLang: String - 原始语言，如"cn"
-* targetLang: String - 目标语言，如"en", 直接从行云传递给应用的flashVars里取得
-* callBack: Function - 初始化完成的回调函数
-
-#### 代码示例
-
-	// 在应用的主类初始化函数加入下面一行代码，其中目标语言，应直接从行云传递给应用的flashVars里取得
-	ML.init("bddemo", "7e77da37d4bdf68bdadc107c27b01672", "cn", "en", onMLReady) ;
+#### 代码示例（完整）
+__提示：在FlashBuilder中新建MLTest.as，粘贴以下代码可直接编译执行。在[行云管理平台](http://p.xingcloud.com)可以创建自己的项目。__	
 	
-	// 申明一个方法onMLReady，ML初始化完成的回自动调用该方法，应用本身的初始化应从这个方法开始
-	private function onMLReady():void
+	package 
 	{
-		trace(ML.transUrl("url")) ;
-		gameInit(); // 应用自己的初始化方法
+		import com.xingcloud.ml.ML;
+	
+		public class MLTest extends flash.display.Sprite
+		{
+			public function MLTest()
+			{
+				// 在应用的主类构造方法中加入下面一行ML初始化代码
+				ML.init("bddemo", "7e77da37d4bdf68bdadc107c27b01672", "cn", "en", onMLReady) ;
+				// init方法参数依次为：服务名称，apiKey，原始语言，目标语言，回调方法（目标语言 应由参数控制，不要写死）
+			}
+			
+			// 申明一个方法onMLReady，ML初始化完成会自动调用该方法，应从这里开始应用的初始化
+			private function onMLReady():void
+			{
+				gameInit() ;
+				// otherInit() ;
+			}
+			
+			// 应用的初始化方法，演示加载SWF文件 ml_swf_test.swf
+			private function gameInit():void
+			{
+				var loader:Loader = new flash.display.Loader() ;
+				var swfUrl:String = "http://173.230.133.116/xingcloud/ml_swf_test.swf" ;
+				addchild(loader) ;
+				
+				// loader.load(swfUrl) ; // 使用ML之前的代码
+				loader.load(ML.transUrl(swfUrl)) ; // 使用ML之后的代码
+				// 实际加载地址为 http://cdn.xingcloud.com/bddemo/cn/173.230.133.116/xingcloud/ml_swf_test.swf?xcv=01
+			}
+		}	
 	}
 
-翻译词句：trans()
+翻译代码中的词句和链接：ML.trans(source)
 -----------------
+传入A返回B。A可以是一条词句或者链接。_使用该接口初始化前需配置 ML.useTrans = true;_
+* A如果是词句，返回B为翻译后的词句。如 ML.trans("你好世界") 返回 "hello world" 
+* A如果是链接，返回B是目标平台的对应链接。如 trans("国内平台粉丝墙链接") 返回 "facebook平台粉丝墙链接"  
 
-public static function trans(source:String):String
+__注意：不建议使用该接口翻译词句，以避免代码与语言耦合，语言应组织为语言包（XML文件）。__
 
-使用本接口直接获取词句的翻译，需要初始化前配置 ML.useTrans = true; 示例如 ML.trans("世界你好");
 
-#### 参数类型
+#### 代码示例（片断）
 
-* source: String - 需要翻译的词句，如 "世界你好"
-
-#### 返回值
-
-* String - 翻译好的词句，如 "hello world"
-
-#### 代码示例
-
+	ML.useTrans = true ; // 初始化前配置
 	ML.init("bddemo", "7e77da37d4bdf68bdadc107c27b01672", "cn", "en", onMLReady) ;
 	private function onMLReady():void
 	{
 		aButton.text = ML.trans("世界你好") ; // hello world
-		// your other code...
+		bbsUrl = "http://sobar.soso.com/b/3007483_1675" ; // 快乐征途的Qznoe论坛链接
+		ML.trans(bbsUrl) ; // http://www.facebook.com/happymarch // 快乐征途的facebook粉丝墙链接
 	}
-
-语言资源地址转换：transUrl()
------------------
-
-public static function transUrl(sourceUrl:String):String
-
-通过原始语言地址获取目标语言地址。强烈建议使用该方法处理应用中的多语言资源请求，优势如下：
-<li>直接通过初始化配置的目标语言获取地址，代码逻辑与语言无关</li>
-<li>目标语言地址携带资源文件MD5，享受CDN加速而无需担心缓存</li>
-
-#### 参数类型
-
-* sourceUrl: String - 原始语言资源地址
-
-#### 返回值
-
-String - 目标语言资源地址
-
-#### 代码示例
-
-	ML.init("bddemo", "7e77da37d4bdf68bdadc107c27b01672", "cn", "en", onMLReady) ;
-	private function onMLReady():void
-	{
-		var cnSourceUrl:String = "http://elex_p_img337-f.akamaihd.net/static/swf/ml-test/ml_swf_test.swf" ;
-		var enSourceUrl:String = ML.transUrl(cnSourceUrl) ;
-	}
+	
+	

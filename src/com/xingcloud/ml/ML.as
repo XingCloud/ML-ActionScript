@@ -18,16 +18,17 @@ package com.xingcloud.ml
 	import flash.utils.setTimeout;
 
 	/**
-	 * ML是 Multi-Language 的缩写，ML类是行云多语言服务核心接口，通过静态的 <code>ML.trans(source); ML.transUrl(sourceUrl);</code> 方法来获取服务。
+	 * ML是 Multi-Language 的缩写，ML类是行云多语言服务核心接口，
+	 * 通过静态的 <code>ML.trans(source); ML.transUrl(sourceUrl);</code> 方法来获取服务。
 	 * @author XingCloudly
 	 */
 	public class ML
 	{
-		private static const VERSION:String = "version 1.2.2.120428" ;
-		private static var _serviceName:String;
-		private static var _apiKey:String;
-		private static var _sourceLang:String;
-		private static var _targetLang:String;
+		private static const VERSION:String = "version 1.2.3.120524" ;
+		private static var _serviceName:String = null ;
+		private static var _apiKey:String = null ;
+		private static var _sourceLang:String = null ;
+		private static var _targetLang:String = null ;
 		private static var _callBack:Function = null ;
 		
 		private static var _prefix:String = null ;
@@ -70,7 +71,7 @@ package com.xingcloud.ml
 			{
 				var url:String = "http://i.xingcloud.com/api/v1/string/add";
 				var request:URLRequest = new URLRequest(url) ;
-				request.data = getURLVariables("data="+source) ; 
+				request.data = getURLVariables("data=" + source) ; 
 				request.method = URLRequestMethod.POST ;
 				loadRequest(request, function(e:Event):void{addDebugInfo("add -> " + source)}) ;
 			}
@@ -78,7 +79,7 @@ package com.xingcloud.ml
 		}
 		
 		/**
-		 * 通过原始资源地址获取目标资源地址。强烈建议使用该方法处理应用的资源请求，优点如下：
+		 * 通过 原始语言地址 获取 目标语言地址。必须使用该方法处理应用中的多语言资源地址，理由如下：
 		 * <li>直接通过初始化配置的目标语言获取地址，代码逻辑与语言无关。</li>
 		 * <li>目标资源地址携带资源文件版本标识xcv，享受CDN加速而无需担心缓存。</li>
 		 * @param sourceUrl - String 原始语言资源地址
@@ -171,6 +172,7 @@ package com.xingcloud.ml
 				return ; //多次初始化视而不见
 			
 			addDebugInfo(VERSION + " initing...") ;
+			addDebugInfo([serviceName, apiKey, sourceLang, targetLang, callBack]) ;
 			_serviceName = serviceName ;
 			_apiKey = apiKey ;
 			_sourceLang = sourceLang ;
@@ -199,7 +201,7 @@ package com.xingcloud.ml
 		{
 			addDebugInfo("load snapshot error: " + event) ;
 			if (_initTimeOutId == int.MAX_VALUE) checkCallBack() ;
-			else loadSnapshot() ;
+			else setTimeout(loadSnapshot, 1000) ;
 		}
 		
 		/**
@@ -226,23 +228,29 @@ package com.xingcloud.ml
 			else 
 			{
 				addDebugInfo("snapshot load timeout. try to read cookie...") ;
-				var reader:ByteArray = lso.data[_serviceName] ;
-				reader && reader.uncompress() ;
-				json = reader ? reader.readObject() : null ;
+				try {
+					var reader:ByteArray = lso.data[_serviceName] ;
+					reader.uncompress() ;
+					json = reader.readObject() ;
+					addDebugInfo("cookie read.") ;
+				} 
+				catch(error:Error) { 
+					addDebugInfo("cookie not found.") ;
+				}
 			}
 			
 			len = json ? json.length : 0 ;
 			if (json && len > 0)
 			{
-				addDebugInfo("snapshot updated. length=" + len) ;
+				addDebugInfo("snapshot decode length=" + len) ;
 				var response:Object = {} ;
 				try { response = Json.decode(json) ; } 
-				catch (error:Error) { addDebugInfo(error) ; }
+				catch (error:Error) { addDebugInfo("snapshot decode error: " + error) ; }
 				
 				_prefix = response["request_prefix"] ;
 				_snapshot = response["data"] || {} ;
 			}
-			else addDebugInfo("snapshot is empty, update skip.") ;
+			else addDebugInfo("snapshot is empty. ATTENTION! check init params!") ;
 			
 			clearTimeout(_initTimeOutId) ;
 			_initTimeOutId = int.MAX_VALUE ;
@@ -254,9 +262,14 @@ package com.xingcloud.ml
 		
 		private static function loadXCWords():void
 		{
-			var xcWrods:String = "xc_words.json" ;
-			var xcWordsUrl:String = _prefix + "/" + xcWrods + "?" + (_snapshot[xcWrods]||Math.random()) ;
-			loadRequest(new URLRequest(xcWordsUrl), onXCWordsLoaded) ;
+			if (_useTrans && _prefix)
+			{
+				addDebugInfo("useTrans to load xc_words...") ;
+				var xcWords:String = "xc_words.json" ;
+				var xcWordsUrl:String = _prefix + "/" + xcWords + "?" + (_snapshot[xcWords]||Math.random()) ;
+				loadRequest(new URLRequest(xcWordsUrl), onXCWordsLoaded) ;
+			}
+			else addDebugInfo("snapshot is empty, load xc_words skip.") ;
 		}
 	
 		private static function onXCWordsLoaded(event:Event):void
@@ -266,7 +279,7 @@ package com.xingcloud.ml
 			{
 				addDebugInfo("xc_words loaded. file length=" + json.length) ;
 				try { _db = Json.decode(json) ; } 
-				catch (error:Error) { addDebugInfo(error) ; }
+				catch (error:Error) { addDebugInfo("xc_words decode error: " + error) ; }
 			}
 			else addDebugInfo("xc_words loaded. file is empty.") ;
 			
@@ -302,6 +315,7 @@ package com.xingcloud.ml
 		
 		private static function checkCallBack():void
 		{
+			_callBack && addDebugInfo("inited.") ;
 			_callBack && _callBack() ;
 			_callBack = null ;
 		}
