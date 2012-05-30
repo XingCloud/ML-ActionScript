@@ -1,9 +1,8 @@
 package com.xingcloud.ml
 {
-	import com.xingcloud.ml.suport.Json;
-	import com.xingcloud.ml.suport.MD5;
+	import com.xingcloud.suport.Json;
+	import com.xingcloud.suport.MD5;
 	
-	import flash.events.ErrorEvent;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
 	import flash.events.SecurityErrorEvent;
@@ -24,7 +23,7 @@ package com.xingcloud.ml
 	 */
 	public class ML
 	{
-		private static const VERSION:String = "version 1.2.3.120524" ;
+		private static const VERSION:String = "version 1.2.4.120530" ;
 		private static var _serviceName:String = null ;
 		private static var _apiKey:String = null ;
 		private static var _sourceLang:String = null ;
@@ -71,7 +70,7 @@ package com.xingcloud.ml
 			{
 				var url:String = "http://i.xingcloud.com/api/v1/string/add";
 				var request:URLRequest = new URLRequest(url) ;
-				request.data = getURLVariables("data=" + source) ; 
+				request.data = getURLVariables("data=" + encodeURI(source)) ; 
 				request.method = URLRequestMethod.POST ;
 				loadRequest(request, function(e:Event):void{addDebugInfo("add -> " + source)}) ;
 			}
@@ -197,7 +196,7 @@ package com.xingcloud.ml
 		/**
 		 * 如果失败一直重试，直至加载成功或者超时。 
 		 */
-		private static function onSnapshotError(event:ErrorEvent):void
+		private static function onSnapshotError(event:Event):void
 		{
 			addDebugInfo("load snapshot error: " + event) ;
 			if (_initTimeOutId == int.MAX_VALUE) checkCallBack() ;
@@ -307,7 +306,7 @@ package com.xingcloud.ml
 			loader.load(request) ;
 		}
 		
-		private static function onLoadError(event:ErrorEvent):void
+		private static function onLoadError(event:Event):void
 		{
 			addDebugInfo("load error: " + event) ;
 			checkCallBack() ;

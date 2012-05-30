@@ -30,7 +30,7 @@
   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-package com.xingcloud.ml.suport {
+package com.xingcloud.suport {
 	
 	import flash.utils.ByteArray;	
 	/**

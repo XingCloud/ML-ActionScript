@@ -1,5 +1,5 @@
 ﻿// 此乃某大大的私房类很好用，请原作者看到及时通知我(liaoyun@xingcloud.com)，加上签名-_-
-package com.xingcloud.ml.suport
+package com.xingcloud.suport
 {
 	public class Json {
 		

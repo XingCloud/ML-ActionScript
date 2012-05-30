@@ -15,11 +15,13 @@
 如加载一个中文的SWF，使用ML前为 loader.load(swfUrl) 使用ML后为 loader.load(ML.transUrl(swfUrl)) 简单完整示例如下：
 
 #### 代码示例（完整）
-__提示：在FlashBuilder中新建MLTest.as，粘贴以下代码可直接编译执行。在[行云管理平台](http://p.xingcloud.com)可以创建自己的项目。__	
+__提示：在FlashBuilder中新建项目，导入ml.swc，新建MLTest.as，粘贴以下代码可直接编译执行。在[行云管理平台](http://p.xingcloud.com)可以创建自己的项目。__	
 	
 	package 
 	{
 		import com.xingcloud.ml.ML;
+		import flash.display.Loader;
+		import flash.net.URLRequest;
 	
 		public class MLTest extends flash.display.Sprite
 		{
@@ -40,12 +42,12 @@ __提示：在FlashBuilder中新建MLTest.as，粘贴以下代码可直接编译
 			// 应用的初始化方法，演示加载SWF文件 ml_swf_test.swf
 			private function gameInit():void
 			{
-				var loader:Loader = new flash.display.Loader() ;
+				var loader:Loader = new Loader() ;
 				var swfUrl:String = "http://173.230.133.116/xingcloud/ml_swf_test.swf" ;
 				addchild(loader) ;
 				
-				// loader.load(swfUrl) ; // 使用ML之前的代码
-				loader.load(ML.transUrl(swfUrl)) ; // 使用ML之后的代码
+				// loader.load(new URLRequest(swfUrl)) ; // 使用ML之前的代码
+				loader.load(new URLRequest(ML.transUrl(swfUrl))) ; // 使用ML之后的代码
 				// 实际加载地址为 http://cdn.xingcloud.com/bddemo/cn/173.230.133.116/xingcloud/ml_swf_test.swf?xcv=01
 			}
 		}	
