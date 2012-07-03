@@ -15,7 +15,8 @@
 如加载一个中文的SWF，使用ML前为 loader.load(swfUrl) 使用ML后为 loader.load(ML.transUrl(swfUrl)) 简单完整示例如下：
 
 #### 代码示例（完整）
-__提示：在FlashBuilder中新建项目，导入ml.swc，新建MLTest.as，粘贴以下代码可直接编译执行。在[行云管理平台](http://p.xingcloud.com)可以创建自己的项目。__	
+__提示：在FlashBuilder中新建项目，导入[ml.swc](https://github.com/XingCloud/ML-ActionScript/blob/master/build/ml_1.2.3.120530.swc?raw=true)，
+新建MLTest.as，粘贴以下代码可直接编译执行。在[行云管理平台](http://p.xingcloud.com)可以创建自己的项目。__	
 	
 	package 
 	{

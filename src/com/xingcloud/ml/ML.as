@@ -23,7 +23,7 @@ package com.xingcloud.ml
 	 */
 	public class ML
 	{
-		private static const VERSION:String = "version 1.2.4.120530" ;
+		private static const VERSION:String = "version 2.0.0.120702" ;
 		private static var _serviceName:String = null ;
 		private static var _apiKey:String = null ;
 		private static var _sourceLang:String = null ;
@@ -97,7 +97,7 @@ package com.xingcloud.ml
 			if (_sourceLang == _targetLang && !_useSourceHost) 
 				return sourceUrl ;
 			
-			var tail:String = getUrlTail(sourceUrl) ;
+			var tail:String = sourceUrl.replace(/\w*:\/\//i, "") ;
 			var	vars:String = tail.substr(tail.indexOf("?")) ;
 			if (vars.charAt(0) == "?") tail = tail.replace(vars, "") ; 
 			else vars = null ;
@@ -112,22 +112,6 @@ package com.xingcloud.ml
 			else addDebugInfo("transUrl " + _transUrlCount + " targetUrl " + targetUrl) ; 
 			
 			return targetUrl ;
-		}
-		
-		// tail will like this: "static/assets/ui.swf?vvv&ppp"
-		private static function getUrlTail(url:String):String
-		{
-			var tail:String = url || "" ;
-			if (tail.search(/\w*:\/\/(f|cdn)\.xingcloud\.com/i) != -1)
-			{
-				tail = tail.substr(_prefix.length + 1) ;
-			}
-			else
-			{
-				tail = tail.replace(/\w*:\/\//i, "") ;
-				tail = tail.substr(tail.indexOf("/") + 1) ;
-			}
-			return tail ;
 		}
 		
 		/**
@@ -187,7 +171,7 @@ package com.xingcloud.ml
 		 */
 		private static function loadSnapshot():void
 		{
-			var url:String = "http://i18n.xingcloud.com/" + _serviceName + "/" + _targetLang + "/snapshot";
+			var url:String = "http://i18n.xingcloud.com/" + _serviceName + "/" + _targetLang + "/v2_snapshot";
 			var request:URLRequest = new URLRequest(url) ;
 			request.data = getURLVariables("locale=" + _targetLang) ;
 			loadRequest(request, onSnapshotLoaded, onSnapshotError) ;
@@ -319,9 +303,9 @@ package com.xingcloud.ml
 			_callBack = null ;
 		}
 		
-		private static function addDebugInfo(info:Object):void
+		private static function addDebugInfo(...info):void
 		{
-			trace("ML:", info) ;
+			trace("ML:", info.join(" ")) ;
 			// call JSProxy.addDebugInfo(info) ;
 		}
 	}
