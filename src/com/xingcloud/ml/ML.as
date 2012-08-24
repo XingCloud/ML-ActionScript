@@ -15,7 +15,7 @@ package com.xingcloud.ml
 	import flash.utils.ByteArray;
 	import flash.utils.clearTimeout;
 	import flash.utils.setTimeout;
-
+	
 	/**
 	 * ML是 Multi-Language 的缩写，ML类是行云多语言服务核心接口，
 	 * 通过静态的 <code>ML.trans(source); ML.transUrl(sourceUrl);</code> 方法来获取服务。
@@ -23,7 +23,7 @@ package com.xingcloud.ml
 	 */
 	public class ML
 	{
-		private static const VERSION:String = "version 2.0.0.120702" ;
+		private static const VERSION:String = "version 2.0.1.120822" ;
 		private static var _serviceName:String = null ;
 		private static var _apiKey:String = null ;
 		private static var _sourceLang:String = null ;
@@ -38,6 +38,11 @@ package com.xingcloud.ml
 		private static var _transUrlCount:int = 0 ;
 		private static var _useTrans:Boolean = false ;
 		private static var _useSourceHost:Boolean = false ;
+		
+		/**
+		 * ML初始化回调后，可以用通过snapshotLoaded判断是否初始化成功。
+		 */
+		public static var snapshotLoaded:Boolean = false ;
 		
 		/**
 		 * 不可实例化，尝试实例化会抛错。直接通过静态的 <code>ML.trans(source); ML.transUrl(sourceUrl);</code> 方法来获取服务。
@@ -87,10 +92,11 @@ package com.xingcloud.ml
 		 */
 		public static function transUrl(sourceUrl:String):String 
 		{
-			addDebugInfo("transUrl " + ++_transUrlCount + " sourceUrl " + sourceUrl) ; 
+			_transUrlCount++ ;
+			addDebugInfo("transUrl " + _transUrlCount + " sourceUrl " + sourceUrl) ; 
 			if (sourceUrl == null || sourceUrl.length == 0)
 				throw new Error("ML.transUrl(sourceUrl) param sourceUrl is null") ;
-
+			
 			if (_prefix == null || _prefix.length < 13) // 13 : magic number:)
 				return sourceUrl ;
 			
@@ -98,18 +104,14 @@ package com.xingcloud.ml
 				return sourceUrl ;
 			
 			var tail:String = sourceUrl.replace(/\w*:\/\//i, "") ;
-			var	vars:String = tail.substr(tail.indexOf("?")) ;
-			if (vars.charAt(0) == "?") tail = tail.replace(vars, "") ; 
-			else vars = null ;
-			
 			var xcv:String = _snapshot[tail] ;
-			var targetUrl:String = _prefix + "/" + tail + (vars||"") ;
+			var targetUrl:String = _prefix + "/" + tail ;
 			if (targetUrl.indexOf("xcv=") == -1 && xcv)
 			{
 				if (targetUrl.indexOf("?") == -1) targetUrl += "?xcv=" + xcv ;
 				else targetUrl += "&xcv=" + xcv ;
 			}
-			else addDebugInfo("transUrl " + _transUrlCount + " targetUrl " + targetUrl) ; 
+			addDebugInfo("transUrl " + _transUrlCount + " tragetUrl " + targetUrl) ; 
 			
 			return targetUrl ;
 		}
@@ -165,7 +167,7 @@ package com.xingcloud.ml
 			loadSnapshot();
 			_initTimeOutId = setTimeout(onSnapshotLoaded, _initTimeOut, null) ;
 		}
-
+		
 		/**
 		 * 加载文件快照。 
 		 */
@@ -231,7 +233,8 @@ package com.xingcloud.ml
 				catch (error:Error) { addDebugInfo("snapshot decode error: " + error) ; }
 				
 				_prefix = response["request_prefix"] ;
-				_snapshot = response["data"] || {} ;
+				_snapshot = response["data"] ;
+				snapshotLoaded = Boolean(_prefix && _snapshot) ; 
 			}
 			else addDebugInfo("snapshot is empty. ATTENTION! check init params!") ;
 			
@@ -254,7 +257,7 @@ package com.xingcloud.ml
 			}
 			else addDebugInfo("snapshot is empty, load xc_words skip.") ;
 		}
-	
+		
 		private static function onXCWordsLoaded(event:Event):void
 		{
 			var json:String = event.target.data ;
