@@ -263,7 +263,7 @@ package com.xingcloud.suport {
 		 *			split into.
 		 */
 		private static function createBlocks( s:ByteArray ):Array {
-			var blocks:Array = new Array();
+			var blocks:Array = [];
 			var len:int = s.length * 8;
 			var mask:int = 0xFF; // ignore hi byte of characters > 0xFF
 			for( var i:int = 0; i < len; i += 8 ) {
