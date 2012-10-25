@@ -23,7 +23,7 @@ package com.xingcloud.ml
 	 */
 	public class ML
 	{
-		private static const VERSION:String = "version 2.0.1.120822" ;
+		private static const VERSION:String = "version 2.0.2.121025" ;
 		private static var _serviceName:String = null ;
 		private static var _apiKey:String = null ;
 		private static var _sourceLang:String = null ;
@@ -173,7 +173,7 @@ package com.xingcloud.ml
 		 */
 		private static function loadSnapshot():void
 		{
-			var url:String = "http://i18n.xingcloud.com/" + _serviceName + "/" + _targetLang + "/v2_snapshot";
+			var url:String = "http://i.xingcloud.com/api/v2/file/snapshot";
 			var request:URLRequest = new URLRequest(url) ;
 			request.data = getURLVariables("locale=" + _targetLang) ;
 			loadRequest(request, onSnapshotLoaded, onSnapshotError) ;
